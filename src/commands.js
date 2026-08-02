@@ -2,6 +2,7 @@ import { api, request } from "./api.js";
 import { getConfig, saveApiKey, clearApiKey, configPath, assertSafeBaseUrl, DEFAULT_BASE_URL } from "./config.js";
 import { c, out, warn, readStdin, table, truncate, relativeDate, prompt } from "./ui.js";
 import { list, when } from "./args.js";
+import { browserLogin } from "./browser-login.js";
 
 /**
  * One function per subcommand. Each receives { flags, positionals } and either
@@ -28,6 +29,22 @@ const STATUS_COLOUR = {
 
 const SENTIMENT_COLOUR = { positive: c.green, negative: c.red, neutral: c.dim };
 
+/**
+ * Trades the one-time code for a key. Hits the app origin rather than the API
+ * base, since this endpoint is not part of the versioned public API.
+ */
+async function exchangeCliCode(baseUrl, code, verifier) {
+  const res = await fetch(new URL("/api/cli/auth/token", new URL(baseUrl).origin), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code, verifier }),
+    signal: AbortSignal.timeout(30_000),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || `Could not complete sign-in (HTTP ${res.status}).`);
+  return data;
+}
+
 /* ── auth ─────────────────────────────────────────────────────────────── */
 
 export async function login({ flags }) {
@@ -45,6 +62,22 @@ export async function login({ flags }) {
   if (!key && flags.stdin) {
     key = (await readStdin()).trim();
     if (!key) throw new Error("Nothing on stdin. Usage: echo \"$KEY\" | echoia login --stdin");
+  }
+
+  // Browser sign-in is the default for a human at a terminal. It needs a
+  // browser and someone to click, so anything non-interactive — CI, a
+  // container, a piped command — keeps the paste path instead.
+  // --browser forces it where TTY detection is unreliable (tmux, wrappers) and
+  // makes the flow drivable by tests.
+  if (!key && !flags["no-browser"] && (flags.browser || process.stdout.isTTY)) {
+    const scopes = list(flags.scope) ?? ["read", "write", "publish", "engage"];
+    const { code, verifier } = await browserLogin({ baseUrl, scopes });
+    const granted = await exchangeCliCode(baseUrl, code, verifier);
+    const path = saveApiKey(granted.key, baseUrl);
+    out("");
+    out(`${c.green("✓")} Signed in — key saved to ${c.dim(path)}`);
+    out(`  ${granted.scopes.join(", ")} · ${granted.workspaces.map((w) => w.name).join(", ")}`);
+    return;
   }
 
   if (!key) {

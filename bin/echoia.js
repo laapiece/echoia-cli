@@ -11,7 +11,7 @@ const pkg = JSON.parse(
   readFileSync(join(dirname(fileURLToPath(import.meta.url)), "..", "package.json"), "utf8")
 );
 
-const BOOLEANS = ["json", "now", "yes", "unreplied", "help", "version"];
+const BOOLEANS = ["json", "now", "yes", "unreplied", "help", "version", "stdin", "browser", "no-browser"];
 const ALIASES = { h: "help", v: "version", y: "yes", a: "accounts", p: "platforms", m: "message", n: "limit" };
 
 const COMMANDS = {
@@ -79,11 +79,16 @@ ${c.dim("Example")}
 
   login: `${c.bold("echoia login")} [--stdin | --key <key>] [--base-url <url>]
 
+  ${c.dim("With no flags, opens your browser to approve this terminal.")}
+
+  --no-browser         Paste a key instead of opening a browser
+  --browser            Force the browser flow (non-interactive shells)
+  --scope <list>       Permissions to request: read,write,publish,engage
   --stdin              Read the key from stdin  ${c.dim('echo "$KEY" | echoia login --stdin')}
   --key <key>          ${c.dim("Discouraged — visible in `ps` and in shell history")}
   --base-url <url>     Another API host: https, or a localhost address
 
-  ${c.dim("With neither flag you are prompted, and the key is not echoed.")}
+  ${c.dim("With --no-browser you are prompted, and the key is not echoed.")}
   ${c.dim("ECHOIA_API_KEY in the environment always takes precedence.")}`,
 };
 
