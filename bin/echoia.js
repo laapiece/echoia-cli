@@ -77,9 +77,13 @@ ${c.dim("Example")}
 
   ${c.dim("postId comes from `echoia posts`.")}`,
 
-  login: `${c.bold("echoia login")} [--key <key>] [--base-url <url>]
+  login: `${c.bold("echoia login")} [--stdin | --key <key>] [--base-url <url>]
 
-  ${c.dim("Without --key you are prompted, and the key is not echoed.")}
+  --stdin              Read the key from stdin  ${c.dim('echo "$KEY" | echoia login --stdin')}
+  --key <key>          ${c.dim("Discouraged — visible in `ps` and in shell history")}
+  --base-url <url>     Another API host: https, or a localhost address
+
+  ${c.dim("With neither flag you are prompted, and the key is not echoed.")}
   ${c.dim("ECHOIA_API_KEY in the environment always takes precedence.")}`,
 };
 

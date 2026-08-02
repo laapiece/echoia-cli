@@ -1,6 +1,6 @@
 import { api, request } from "./api.js";
-import { getConfig, saveApiKey, clearApiKey, configPath, DEFAULT_BASE_URL } from "./config.js";
-import { c, out, table, truncate, relativeDate, prompt } from "./ui.js";
+import { getConfig, saveApiKey, clearApiKey, configPath, assertSafeBaseUrl, DEFAULT_BASE_URL } from "./config.js";
+import { c, out, warn, readStdin, table, truncate, relativeDate, prompt } from "./ui.js";
 import { list, when } from "./args.js";
 
 /**
@@ -31,8 +31,21 @@ const SENTIMENT_COLOUR = { positive: c.green, negative: c.red, neutral: c.dim };
 /* ── auth ─────────────────────────────────────────────────────────────── */
 
 export async function login({ flags }) {
-  const baseUrl = flags["base-url"] || DEFAULT_BASE_URL;
+  const baseUrl = assertSafeBaseUrl(flags["base-url"] || DEFAULT_BASE_URL);
   let key = typeof flags.key === "string" ? flags.key : null;
+
+  if (key) {
+    // A key passed as an argument is readable by every other user on the
+    // machine while the process runs (/proc/<pid>/cmdline on Linux, `ps`
+    // elsewhere), and CI runners echo commands into their logs. The prompt,
+    // --stdin and ECHOIA_API_KEY all avoid that.
+    warn("--key puts your key in the process list and your shell history. Prefer `--stdin` or ECHOIA_API_KEY.");
+  }
+
+  if (!key && flags.stdin) {
+    key = (await readStdin()).trim();
+    if (!key) throw new Error("Nothing on stdin. Usage: echo \"$KEY\" | echoia login --stdin");
+  }
 
   if (!key) {
     out(`Create a key in ${c.bold("Settings → Developers")} at https://app.echoia.io`);

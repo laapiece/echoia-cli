@@ -1,5 +1,5 @@
 {
-  "name": "echoia",
+  "name": "echoia-cli",
   "version": "0.1.0",
   "description": "Command line for Echoia — publish, schedule and triage social media from your terminal.",
   "type": "module",

@@ -7,7 +7,7 @@ endpoints the app and the MCP server use, so anything you can do here you can do
 from a script or a CI job.
 
 ```bash
-npm install -g echoia
+npm install -g echoia-cli
 echoia login
 echoia post "Doors open Friday." --platforms instagram,facebook --at 2d
 ```
@@ -19,7 +19,7 @@ pulls in a tree of transitive packages is a supply-chain liability for something
 this small.
 
 ```bash
-npm install -g echoia
+npm install -g echoia-cli
 ```
 
 ## Authenticate
@@ -118,7 +118,7 @@ echoia comments --unreplied --limit 50 --json \
   env:
     ECHOIA_API_KEY: ${{ secrets.ECHOIA_API_KEY }}
   run: |
-    npx echoia post "Version ${{ github.ref_name }} is out." \
+    npx echoia-cli post "Version ${{ github.ref_name }} is out." \
       --platforms x,linkedin --at 1h --yes
 ```
 

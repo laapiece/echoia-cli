@@ -27,11 +27,35 @@ function readFile() {
   }
 }
 
+/**
+ * Refuses to send the key in clear text.
+ *
+ * ECHOIA_BASE_URL is the one setting that decides where a bearer token is
+ * sent, and a plain http:// host would put it on the wire for anyone on the
+ * path to read. Loopback is exempt so `next dev` stays usable.
+ */
+export function assertSafeBaseUrl(baseUrl) {
+  let u;
+  try {
+    u = new URL(baseUrl);
+  } catch {
+    throw new Error(`Invalid base URL: ${baseUrl}`);
+  }
+  const loopback = ["localhost", "127.0.0.1", "[::1]", "::1"].includes(u.hostname);
+  if (u.protocol !== "https:" && !loopback) {
+    throw new Error(
+      `Refusing to send your API key over ${u.protocol}// to ${u.host}. Use https, or a localhost address for development.`
+    );
+  }
+  return baseUrl;
+}
+
 export function getConfig() {
   const file = readFile();
+  const baseUrl = process.env.ECHOIA_BASE_URL || file.baseUrl || DEFAULT_BASE_URL;
   return {
     apiKey: process.env.ECHOIA_API_KEY || file.apiKey || null,
-    baseUrl: process.env.ECHOIA_BASE_URL || file.baseUrl || DEFAULT_BASE_URL,
+    baseUrl: assertSafeBaseUrl(baseUrl),
     // Tells `logout` and `whoami` where the key actually came from.
     source: process.env.ECHOIA_API_KEY ? "env" : file.apiKey ? "file" : null,
   };

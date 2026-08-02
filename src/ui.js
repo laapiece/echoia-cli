@@ -30,6 +30,18 @@ export function fail(message, hint) {
   process.exitCode = 1;
 }
 
+/** Non-fatal notice. On stderr, so it never pollutes `--json` on stdout. */
+export function warn(message) {
+  process.stderr.write(`${c.yellow("Warning")} ${message}\n`);
+}
+
+/** Reads all of stdin — lets a secret be piped in without ever hitting argv. */
+export async function readStdin() {
+  const chunks = [];
+  for await (const chunk of stdin) chunks.push(chunk);
+  return Buffer.concat(chunks).toString("utf8");
+}
+
 /** Strips escape codes so column widths line up when colour is on. */
 const width = (s) => String(s).replace(/\[\d+m/g, "").length;
 
