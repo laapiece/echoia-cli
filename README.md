@@ -9,7 +9,7 @@ from a script or a CI job.
 ```bash
 npm install -g echoia-cli
 echoia login
-echoia post "Doors open Friday." --platforms instagram,facebook --at 2d
+echoia post "Doors open Friday." --accounts instagram:@you,facebook:@you --at 2d
 ```
 
 ## Install
@@ -24,22 +24,40 @@ npm install -g echoia-cli
 
 ## Authenticate
 
-Create a key in **Settings → Developers** at [app.echoia.io](https://app.echoia.io),
-then either store it once:
-
 ```bash
-echoia login          # prompts, input is not echoed
+echoia login
 ```
 
-…or set an environment variable, which is what a CI job should do:
+Opens your browser, you approve the terminal, and the key lands in your config.
+Nothing to copy or paste.
+
+It uses PKCE over a loopback redirect (RFC 8252): a CLI published on npm cannot
+keep a client secret, so it commits to the hash of a random value first and
+proves itself with the value at the end. The browser is handed a **one-time
+code**, never the key — a key in a redirect URL survives in browser history, in
+the referrer and in any proxy log on the way.
+
+### Without a browser
+
+A CI job has no browser and nobody to click, so the environment still wins over
+everything else:
 
 ```bash
 export ECHOIA_API_KEY="eko_..."
 ```
 
-The environment always wins over the stored key, so you can point a single
-command at a different workspace without logging out. Stored keys live in
-`~/.config/echoia/config.json` with `0600` permissions.
+For a shared machine, pipe the key in so it never reaches `argv` — anyone else
+on the box can read a command line out of `ps`:
+
+```bash
+echo "$KEY" | echoia login --stdin
+```
+
+`echoia login --no-browser` prompts instead, without echoing what you type. The
+browser flow is skipped automatically whenever output is not a terminal.
+
+Stored keys live in `~/.config/echoia/config.json` with `0600` permissions.
+Revoke any of them from **Settings → Developers**.
 
 ## Commands
 
