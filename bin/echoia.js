@@ -37,7 +37,7 @@ const HELP = {
   --now                    Publish immediately ${c.dim("(needs the publish scope)")}
   --media <urls>           Comma-separated https:// media URLs
   --first-comment <text>   Posted under it once live
-  --yes, -y                Skip the confirmation before publishing
+  --yes, -y                Accepted for compatibility; --now no longer asks
   --json                   Print the raw response
 
   ${c.dim("Without --at or --now the post is saved as a draft.")}

@@ -259,15 +259,9 @@ export async function post({ flags, positionals }) {
     ...(flags["first-comment"] ? { firstComments: [String(flags["first-comment"])] } : {}),
   };
 
-  // Publishing is irreversible; make the operator say so out loud unless they
-  // passed --yes (which is what a CI job does).
-  if (flags.now && !flags.yes && process.stdout.isTTY) {
-    const where = accountIds?.length ? accountIds.join(", ") : platforms.join(", ");
-    out(`${c.yellow("This publishes immediately")} to ${where}:`);
-    out(`  ${truncate(content, 100)}`);
-    const answer = await prompt("Type 'yes' to publish: ");
-    if (answer.toLowerCase() !== "yes") return out("Cancelled.");
-  }
+  // No confirmation prompt: --now IS the confirmation. Asking again after an
+  // explicit flag is friction, not safety, and it breaks piping. (--yes is
+  // still accepted so existing scripts keep working.)
 
   const data = await api.createPost(body);
   if (json(flags, data)) return;
@@ -291,7 +285,14 @@ export async function post({ flags, positionals }) {
         : `  ${c.red("✗")} ${who} ${c.dim(r.error ?? "")}`
     );
   }
-  if (data.note) out(c.dim(`  ${data.note}`));
+  // The server's note names API fields (scheduledAt, publishNow) because MCP
+  // agents and REST callers read it too. In a terminal that is noise, so a
+  // draft gets the flag version instead of both.
+  if (p.status === "draft") {
+    out(c.dim("  Saved as a draft. Add --at <when> to schedule it, or --now to publish it."));
+  } else if (data.note) {
+    out(c.dim(`  ${data.note}`));
+  }
 }
 
 export async function reply({ flags, positionals }) {
