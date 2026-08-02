@@ -1,0 +1,38 @@
+{
+  "name": "echoia",
+  "version": "0.1.0",
+  "description": "Command line for Echoia — publish, schedule and triage social media from your terminal.",
+  "type": "module",
+  "bin": {
+    "echoia": "bin/echoia.js"
+  },
+  "files": [
+    "bin",
+    "src",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": [
+    "echoia",
+    "social-media",
+    "cli",
+    "scheduling",
+    "instagram",
+    "linkedin",
+    "tiktok"
+  ],
+  "license": "MIT",
+  "homepage": "https://echoia.io/docs/cli",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/laapiece/echoia-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/laapiece/echoia-cli/issues"
+  },
+  "scripts": {
+    "test": "node --test test/"
+  }
+}
